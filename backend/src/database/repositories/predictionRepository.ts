@@ -8,7 +8,8 @@ export class PredictionRepository {
   ): Promise<Prediction> {
     const query = `
       INSERT INTO predictions (event_id, prediction_type, predicted_value, confidence_score, reasoning, model_version)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      VALUES ($1, $2, $3, $4, $5, $6)   
+       ON CONFLICT (event_id) DO NOTHING   
       RETURNING *
     `;
     const values = [
@@ -22,7 +23,13 @@ export class PredictionRepository {
 
     try {
       const result = await db.query(query, values);
-      return result.rows[0];
+     // If insert returned a row, return it.
+      if (result.rows && result.rows[0]) return result.rows[0];
+
+      // Otherwise a conflicting row exists. Return the existing prediction for the event.
+      const existingQuery = `SELECT * FROM predictions WHERE event_id = $1 ORDER BY created_at DESC LIMIT 1`;
+      const existingResult = await db.query(existingQuery, [prediction.event_id]);
+      return existingResult.rows[0];
     } catch (error: any) {
       logger.error('Error creating prediction', { error: error.message, prediction });
       throw error;

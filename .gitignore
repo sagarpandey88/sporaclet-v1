@@ -137,3 +137,15 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Data files (exclude actual data, keep examples)
+data/*.json
+!data/*.example
+!data/README.md
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

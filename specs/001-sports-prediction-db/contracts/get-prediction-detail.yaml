@@ -1,0 +1,304 @@
+openapi: 3.0.3
+info:
+  title: Sports Predictions API - Get Prediction Detail
+  description: API endpoint for retrieving detailed information about a specific prediction
+  version: 1.0.0
+  contact:
+    name: Sporaclet API Team
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local development server
+  - url: https://api.sporaclet.com/api/v1
+    description: Production server
+
+paths:
+  /predictions/{id}:
+    get:
+      summary: Get prediction details
+      description: |
+        Retrieves complete details for a specific prediction including full event information,
+        confidence score, and detailed analysis data.
+      operationId: getPredictionDetail
+      tags:
+        - Predictions
+      parameters:
+        - name: id
+          in: path
+          description: Unique identifier of the prediction
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+            example: 5678
+      responses:
+        '200':
+          description: Successful response with prediction details
+          headers:
+            X-RateLimit-Limit:
+              description: Request limit per time window
+              schema:
+                type: integer
+                example: 100
+            X-RateLimit-Remaining:
+              description: Remaining requests in current window
+              schema:
+                type: integer
+                example: 94
+            X-RateLimit-Reset:
+              description: Unix timestamp when limit resets
+              schema:
+                type: integer
+                example: 1641024000
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PredictionDetail'
+              examples:
+                football_prediction:
+                  summary: Football match prediction
+                  value:
+                    id: 5678
+                    predicted_outcome: "Arsenal wins 2-1"
+                    confidence_score: 75.50
+                    analysis_details:
+                      reasoning: "Arsenal has strong home advantage with 80% win rate at Emirates this season"
+                      factors:
+                        - "home_advantage"
+                        - "recent_form"
+                        - "head_to_head"
+                      key_stats:
+                        arsenal_home_wins: 8
+                        chelsea_away_losses: 4
+                    ai_model: "gpt-4-turbo"
+                    model_version: "2025-01-01"
+                    created_at: "2026-01-09T12:00:00Z"
+                    event:
+                      id: 1234
+                      sport_type: "Football"
+                      event_name: "Premier League: Arsenal vs Chelsea"
+                      participants: "Arsenal FC vs Chelsea FC"
+                      scheduled_at: "2026-01-15T20:00:00Z"
+                      event_status: "upcoming"
+                      location: "Emirates Stadium, London"
+                      metadata:
+                        league: "Premier League"
+                        season: "2025-26"
+                        round: 20
+        '404':
+          description: Prediction not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                not_found:
+                  summary: Prediction does not exist
+                  value:
+                    error:
+                      code: "PREDICTION_NOT_FOUND"
+                      message: "Prediction with ID 99999 not found"
+                      details:
+                        prediction_id: 99999
+        '400':
+          description: Bad request - invalid prediction ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid_id:
+                  summary: Invalid ID parameter
+                  value:
+                    error:
+                      code: "INVALID_PARAMETER"
+                      message: "Prediction ID must be a positive integer"
+                      details:
+                        parameter: "id"
+                        value: "abc"
+        '429':
+          description: Too many requests - rate limit exceeded
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+                example: 100
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+                example: 0
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+                example: 1641024900
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                rate_limited:
+                  summary: Rate limit exceeded
+                  value:
+                    error:
+                      code: "RATE_LIMIT_EXCEEDED"
+                      message: "Too many requests. Please try again later."
+                      details:
+                        limit: 100
+                        window: "15 minutes"
+                        reset_at: "2026-01-09T15:15:00Z"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                server_error:
+                  summary: Internal error
+                  value:
+                    error:
+                      code: "INTERNAL_ERROR"
+                      message: "An unexpected error occurred. Please try again later."
+                      details: {}
+
+components:
+  schemas:
+    PredictionDetail:
+      type: object
+      required:
+        - id
+        - predicted_outcome
+        - confidence_score
+        - analysis_details
+        - ai_model
+        - model_version
+        - created_at
+        - event
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Unique identifier for the prediction
+          example: 5678
+        predicted_outcome:
+          type: string
+          description: The predicted outcome text
+          example: "Arsenal wins 2-1"
+        confidence_score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          description: Confidence level as percentage (0-100)
+          example: 75.50
+        analysis_details:
+          type: object
+          description: Detailed analysis data (denormalized JSON)
+          additionalProperties: true
+          example:
+            reasoning: "Arsenal has strong home advantage"
+            factors: ["home_advantage", "recent_form"]
+            key_stats:
+              arsenal_home_wins: 8
+              chelsea_away_losses: 4
+        ai_model:
+          type: string
+          description: AI model/provider identifier
+          example: "gpt-4-turbo"
+        model_version:
+          type: string
+          description: Version of the AI model used
+          example: "2025-01-01"
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when prediction was created (ISO 8601, UTC)
+          example: "2026-01-09T12:00:00Z"
+        event:
+          $ref: '#/components/schemas/EventDetail'
+
+    EventDetail:
+      type: object
+      required:
+        - id
+        - sport_type
+        - event_name
+        - participants
+        - scheduled_at
+        - event_status
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Unique identifier for the event
+          example: 1234
+        sport_type:
+          type: string
+          description: Type of sport
+          example: "Football"
+        event_name:
+          type: string
+          description: Name/description of the event
+          example: "Premier League: Arsenal vs Chelsea"
+        participants:
+          type: string
+          description: Denormalized participant names (teams or players)
+          example: "Arsenal FC vs Chelsea FC"
+        scheduled_at:
+          type: string
+          format: date-time
+          description: Event scheduled date and time (ISO 8601, UTC)
+          example: "2026-01-15T20:00:00Z"
+        event_status:
+          type: string
+          enum:
+            - upcoming
+            - in-progress
+            - completed
+            - cancelled
+          description: Current status of the event
+          example: "upcoming"
+        location:
+          type: string
+          nullable: true
+          description: Venue/location name
+          example: "Emirates Stadium, London"
+        metadata:
+          type: object
+          description: Sport-specific metadata (JSONB)
+          additionalProperties: true
+          example:
+            league: "Premier League"
+            season: "2025-26"
+            round: 20
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+            - details
+          properties:
+            code:
+              type: string
+              description: Machine-readable error code
+              example: "PREDICTION_NOT_FOUND"
+            message:
+              type: string
+              description: Human-readable error message
+              example: "Prediction with ID 99999 not found"
+            details:
+              type: object
+              description: Additional error context
+              example:
+                prediction_id: 99999
+
+tags:
+  - name: Predictions
+    description: Sports prediction operations

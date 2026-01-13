@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS events (
     status VARCHAR(20) NOT NULL DEFAULT 'SCHEDULED',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_archived BOOLEAN NOT NULL DEFAULT FALSE,
     CONSTRAINT check_status CHECK (status IN ('SCHEDULED', 'LIVE', 'COMPLETED', 'POSTPONED', 'CANCELLED'))
 );
 
@@ -28,7 +29,6 @@ CREATE TABLE IF NOT EXISTS predictions (
     model_version VARCHAR(50) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    is_archived BOOLEAN NOT NULL DEFAULT FALSE,
     CONSTRAINT check_prediction_type CHECK (prediction_type IN ('WINNER', 'SCORE', 'OVER_UNDER')),
     CONSTRAINT check_confidence_score CHECK (confidence_score >= 0 AND confidence_score <= 100)
 );
@@ -45,7 +45,6 @@ CREATE INDEX IF NOT EXISTS idx_events_away_team ON events(away_team);
 CREATE INDEX IF NOT EXISTS idx_predictions_event_id ON predictions(event_id);
 CREATE INDEX IF NOT EXISTS idx_predictions_type ON predictions(prediction_type);
 CREATE INDEX IF NOT EXISTS idx_predictions_confidence ON predictions(confidence_score);
-CREATE INDEX IF NOT EXISTS idx_predictions_archived ON predictions(is_archived);
 CREATE INDEX IF NOT EXISTS idx_predictions_created_at ON predictions(created_at);
 
 -- Create function to update updated_at timestamp

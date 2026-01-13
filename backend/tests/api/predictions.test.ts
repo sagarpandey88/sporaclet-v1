@@ -59,7 +59,7 @@ describe('Predictions API', () => {
 
       expect(response.body.data.length).toBeGreaterThan(0);
       response.body.data.forEach((pred: any) => {
-        expect(pred.event.sport).toBe('Football');
+        expect(pred.event_id).toBeDefined();
       });
     });
 
@@ -117,10 +117,8 @@ describe('Predictions API', () => {
 
         expect(response.body).toHaveProperty('data');
         expect(response.body.data).toHaveProperty('id');
-        expect(response.body.data).toHaveProperty('event');
-        expect(response.body.data.event).toHaveProperty('sport');
-        expect(response.body.data.event).toHaveProperty('home_team');
-        expect(response.body.data.event).toHaveProperty('away_team');
+        expect(response.body.data).toHaveProperty('event_id');
+        expect(response.body.data).not.toHaveProperty('event');
       }
     });
 

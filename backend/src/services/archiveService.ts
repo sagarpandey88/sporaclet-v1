@@ -1,4 +1,4 @@
-import predictionRepository from '../database/repositories/predictionRepository';
+import eventRepository from '../database/repositories/eventRepository';
 import logger from './logger';
 import { ArchiveJobResult } from '../types';
 
@@ -12,7 +12,7 @@ export class ArchiveService {
     try {
       logger.info('Starting archival job', { retentionDays });
 
-      const archivedCount = await predictionRepository.archiveOldPredictions(retentionDays);
+      const archivedCount = await eventRepository.archiveOldEvents(retentionDays);
 
       const result: ArchiveJobResult = {
         archivedCount,
@@ -30,15 +30,12 @@ export class ArchiveService {
   }
 
   /**
-   * Get count of archived predictions
+   * Get count of archived events
    */
   async getArchivedCount(): Promise<number> {
     try {
-      const { total } = await predictionRepository.findAll(
-        { includeArchived: true },
-        { page: 1, limit: 1, offset: 0 }
-      );
-      return total;
+      const count = await eventRepository.getArchivedCount();
+      return count;
     } catch (error: any) {
       logger.error('Error getting archived count', { error: error.message });
       throw error;

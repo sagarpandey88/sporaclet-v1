@@ -74,7 +74,7 @@ GET /api/predictions
 - `endDate` - Filter events until this date (ISO 8601)
 - `predictionType` - Filter by type: `WINNER`, `SCORE`, `OVER_UNDER`
 - `minConfidence` - Minimum confidence score (0-100)
-- `includeArchived` - Include archived predictions (`true`/`false`)
+- `includeArchived` - Include events that are archived (`true`/`false`)
 - `page` - Page number (default: 1)
 - `limit` - Items per page (default: 20, max: 100)
 
@@ -95,7 +95,6 @@ curl "http://localhost:3000/api/predictions?sport=Football&league=Premier%20Leag
       "confidence_score": 75.5,
       "reasoning": "Home advantage and strong recent form",
       "model_version": "v1.2.0",
-      "is_archived": false,
       "created_at": "2026-01-09T10:00:00Z",
       "updated_at": "2026-01-09T10:00:00Z",
       "event": {
@@ -106,7 +105,8 @@ curl "http://localhost:3000/api/predictions?sport=Football&league=Premier%20Leag
         "away_team": "Liverpool",
         "event_date": "2026-02-15T15:00:00Z",
         "venue": "Old Trafford",
-        "status": "SCHEDULED"
+        "status": "SCHEDULED",
+        "is_archived": false
       }
     }
   ],
@@ -245,9 +245,9 @@ docker-compose up -d
 
 ## Archive Service
 
-Automatically archives predictions older than the configured retention period (default: 30 days). Runs as a cron job at midnight daily.
+Automatically archives events older than the configured retention period (default: 30 days). Runs as a cron job at midnight daily.
 
-Archived predictions are marked with `is_archived: true` and can be excluded from API responses by default.
+Archived events are marked with `is_archived: true` on the `event` object and are excluded from API list responses by default.
 
 ## Contributing
 

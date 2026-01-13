@@ -70,7 +70,7 @@ describe('Archive Service', () => {
         status: 'SCHEDULED',
       });
 
-      const recentPrediction = await predictionRepository.create({
+      await predictionRepository.create({
         event_id: recentEvent.id,
         prediction_type: 'WINNER',
         predicted_value: 'Arsenal',
@@ -79,17 +79,17 @@ describe('Archive Service', () => {
         model_version: 'v1.0.0',
       });
 
-      const result = await archiveService.archiveOldPredictions(30);
+      await archiveService.archiveOldPredictions(30);
 
-      // Verify the recent prediction is not archived
-      const prediction = await predictionRepository.findById(recentPrediction.id);
-      expect(prediction).not.toBeNull();
-      expect(prediction?.is_archived).toBe(false);
+      // Verify the recent event is not archived
+      const event = await eventRepository.findById(recentEvent.id);
+      expect(event).not.toBeNull();
+      expect(event?.is_archived).toBe(false);
     });
   });
 
   describe('getArchivedCount', () => {
-    it('should return count of archived predictions', async () => {
+    it('should return count of archived events', async () => {
       const count = await archiveService.getArchivedCount();
       expect(typeof count).toBe('number');
       expect(count).toBeGreaterThanOrEqual(0);

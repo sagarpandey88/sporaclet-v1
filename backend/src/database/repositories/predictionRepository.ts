@@ -1,10 +1,10 @@
 import db from '../connection';
-import { Prediction, PredictionWithEvent, PaginationParams } from '../../types';
+import { Prediction, PaginationParams } from '../../types';
 import logger from '../../services/logger';
 
 export class PredictionRepository {
   async create(
-    prediction: Omit<Prediction, 'id' | 'created_at' | 'updated_at' | 'is_archived'>
+    prediction: Omit<Prediction, 'id' | 'created_at' | 'updated_at'>
   ): Promise<Prediction> {
     const query = `
       INSERT INTO predictions (event_id, prediction_type, predicted_value, confidence_score, reasoning, model_version)
@@ -36,24 +36,10 @@ export class PredictionRepository {
     }
   }
 
-  async findById(id: number): Promise<PredictionWithEvent | null> {
+  async findById(id: number): Promise<Prediction | null> {
     const query = `
-      SELECT 
-        p.*,
-        json_build_object(
-          'id', e.id,
-          'sport', e.sport,
-          'league', e.league,
-          'home_team', e.home_team,
-          'away_team', e.away_team,
-          'event_date', e.event_date,
-          'venue', e.venue,
-          'status', e.status,
-          'created_at', e.created_at,
-          'updated_at', e.updated_at
-        ) as event
+      SELECT p.*
       FROM predictions p
-      INNER JOIN events e ON p.event_id = e.id
       WHERE p.id = $1
     `;
 
@@ -78,22 +64,18 @@ export class PredictionRepository {
       includeArchived?: boolean;
     },
     pagination: PaginationParams
-  ): Promise<{ predictions: PredictionWithEvent[]; total: number }> {
+  ): Promise<{ predictions: Prediction[]; total: number }> {
     let query = `
-      SELECT 
-        p.*,
-        json_build_object(
-          'id', e.id,
-          'sport', e.sport,
-          'league', e.league,
-          'home_team', e.home_team,
-          'away_team', e.away_team,
-          'event_date', e.event_date,
-          'venue', e.venue,
-          'status', e.status,
-          'created_at', e.created_at,
-          'updated_at', e.updated_at
-        ) as event
+      SELECT
+        p.id,
+        p.event_id,
+        p.prediction_type,
+        p.predicted_value,
+        CAST(p.confidence_score AS DOUBLE PRECISION) as confidence_score,
+        p.reasoning,
+        p.model_version,
+        p.created_at,
+        p.updated_at
       FROM predictions p
       INNER JOIN events e ON p.event_id = e.id
       WHERE 1=1
@@ -103,7 +85,7 @@ export class PredictionRepository {
     let paramCount = 1;
 
     if (!filters.includeArchived) {
-      query += ` AND p.is_archived = false`;
+      query += ` AND e.is_archived = false`;
     }
 
     if (filters.sport) {
@@ -192,22 +174,7 @@ export class PredictionRepository {
     }
   }
 
-  async archiveOldPredictions(retentionDays: number): Promise<number> {
-    const query = `
-      UPDATE predictions
-      SET is_archived = true
-      WHERE is_archived = false
-        AND created_at < NOW() - INTERVAL '${retentionDays} days'
-    `;
-
-    try {
-      const result = await db.query(query);
-      return result.rowCount || 0;
-    } catch (error: any) {
-      logger.error('Error archiving predictions', { error: error.message, retentionDays });
-      throw error;
-    }
-  }
+  
 
   async delete(id: number): Promise<boolean> {
     const query = 'DELETE FROM predictions WHERE id = $1';

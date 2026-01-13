@@ -8,7 +8,6 @@ export interface Prediction {
   model_version: string;
   created_at: Date;
   updated_at: Date;
-  is_archived: boolean;
 }
 
 export interface Event {
@@ -23,8 +22,15 @@ export interface Event {
   status: string;//'SCHEDULED' | 'LIVE' | 'COMPLETED' | 'POSTPONED' | 'CANCELLED';
   created_at: Date;
   updated_at: Date;
+  is_archived?: boolean;
+    prediction?: Prediction | null;
+  // convenience field used in list responses to indicate the selected winner
+  winner?: string | null;
 }
 
+/**
+ * @deprecated Predictions should no longer embed the full `event` object.
+ */
 export interface PredictionWithEvent extends Prediction {
   event: Event;
 }

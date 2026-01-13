@@ -7,6 +7,7 @@ import db from './database/connection';
 import { errorHandler, notFoundHandler } from './api/middleware/errorHandler';
 import { rateLimiter } from './api/middleware/rateLimiter';
 import predictionsRouter from './api/routes/predictions';
+import eventsRouter from './api/routes/events';
 import { startArchiveJob } from './jobs/archiveJob';
 
 dotenv.config();
@@ -48,6 +49,7 @@ app.get('/health', async (_req, res) => {
 
 // API routes
 app.use('/api/predictions', predictionsRouter);
+app.use('/api/events', eventsRouter);
 
 // Error handling
 app.use(notFoundHandler);

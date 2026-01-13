@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import predictionRepository from '../../database/repositories/predictionRepository';
 import { asyncHandler } from '../middleware/errorHandler';
 import { AppError } from '../middleware/errorHandler';
-import { PaginatedResponse, PredictionWithEvent } from '../../types';
+import { PaginatedResponse, Prediction } from '../../types';
 import logger from '../../services/logger';
 
 const router = Router();
@@ -62,7 +62,7 @@ router.get(
       offset,
     });
 
-    const response: PaginatedResponse<PredictionWithEvent> = {
+    const response: PaginatedResponse<Prediction> = {
       data: predictions,
       pagination: {
         page: pageNum,

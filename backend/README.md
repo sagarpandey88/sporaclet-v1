@@ -6,7 +6,7 @@ RESTful API for the Sports Prediction Portal built with Node.js, Express, TypeSc
 
 - **Predictions API**: List and retrieve sports predictions with filtering and pagination
 - **Database**: PostgreSQL with connection pooling and migrations
-- **Archival Service**: Automated cron job to archive old predictions
+-- **Archival Service**: Automated cron job to archive old events
 - **Rate Limiting**: Request throttling to prevent abuse
 - **Security**: Helmet.js, CORS, and input validation
 - **Logging**: Structured logging with Winston
@@ -86,7 +86,7 @@ Query parameters:
 - `endDate` (ISO date): Filter by event end date
 - `predictionType` (enum): WINNER, SCORE, OVER_UNDER
 - `minConfidence` (number): Minimum confidence score (0-100)
-- `includeArchived` (boolean): Include archived predictions
+- `includeArchived` (boolean): Include archived events
 - `page` (number): Page number (default: 1)
 - `limit` (number): Items per page (default: 20, max: 100)
 
@@ -146,7 +146,7 @@ backend/
 
 ## Archive Service
 
-The archive service runs daily at midnight (configurable via `ARCHIVE_CRON_SCHEDULE`) and marks predictions older than `ARCHIVE_RETENTION_DAYS` as archived.
+The archive service runs daily at midnight (configurable via `ARCHIVE_CRON_SCHEDULE`) and marks events older than `ARCHIVE_RETENTION_DAYS` as archived (`events.is_archived = true`).
 
 To manually trigger archival:
 ```typescript

@@ -243,8 +243,8 @@ Response: {
   data: {
     id, event_id, prediction_type, predicted_value,
     confidence_score, reasoning, model_version,
-    created_at, updated_at, is_archived,
-    event: { ... }
+    created_at, updated_at,
+    event: { ... , is_archived }
   }
 }
 ```
